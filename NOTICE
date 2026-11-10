@@ -1,0 +1,9 @@
+리니어 한글화
+=============
+
+이 확장의 DOM 번역 엔진과 한국어 사전(locales/ko.json)은
+LangsAny for Linear / LinearCN (GPL-3.0) 패키지를 참고하고 파생했습니다.
+원본: https://chromewebstore.google.com/detail/LinearCN/iadjepkibljfmgjomobigajcegclfedc
+
+다국어, 언어 선택, storage 기반 설정은 제거했고, 한국어 전용으로 단순화했습니다.
+라이선스는 LICENSE(GPL-3.0)를 따릅니다.

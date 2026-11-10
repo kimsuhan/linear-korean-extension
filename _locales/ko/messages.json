@@ -1,0 +1,8 @@
+{
+  "extensionName": {
+    "message": "리니어 한글화"
+  },
+  "extensionDescription": {
+    "message": "Linear.app 화면을 한국어로 보여 줍니다. 번역은 기기 안에서만 처리되며, 워크스페이스 내용은 업로드하지 않습니다."
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "manifest_version": 3,
+  "name": "__MSG_extensionName__",
+  "short_name": "리니어 한글화",
+  "description": "__MSG_extensionDescription__",
+  "default_locale": "ko",
+  "version": "1.0.0",
+  "icons": {
+    "16": "img/favicon-16x16.png",
+    "48": "img/favicon-48x48.png",
+    "128": "img/favicon-128x128.png"
+  },
+  "action": {
+    "default_popup": "options/options.html",
+    "default_title": "리니어 한글화"
+  },
+  "options_ui": {
+    "page": "options/options.html",
+    "open_in_tab": false
+  },
+  "background": {
+    "service_worker": "js/background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["*://*.linear.app/*"],
+      "js": ["js/content.js"],
+      "run_at": "document_end",
+      "all_frames": true
+    }
+  ]
+}
