@@ -1,0 +1,5 @@
+# 웹스토어 zip(git archive)에서 제외
+.gitattributes export-ignore
+.gitignore export-ignore
+.github export-ignore
+RELEASING.md export-ignore
