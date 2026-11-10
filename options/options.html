@@ -8,20 +8,56 @@
 </head>
 <body>
   <main>
-    <header>
-      <h1 class="product">리니어 한글화</h1>
-      <span class="brand">KO</span>
-    </header>
-    <section class="control">
-      <p class="lead">Linear.app 화면 문구를 한국어로 바꿉니다.</p>
-      <p class="note">이미 열린 Linear 탭은 한 번 새로고침하면 적용됩니다.</p>
+    <section class="hero">
+      <p class="eyebrow"><span class="dot"></span>Linear.app 전용</p>
+      <h1>리니어 <em>한글화</em></h1>
+      <p class="tagline">영어 메뉴는 이제 그만. 화면 문구를 한국어로 바꿉니다.</p>
     </section>
+
+    <section class="demo" role="img" aria-label="Linear 화면의 영어 메뉴가 한국어로 바뀌는 예시">
+      <div class="bar">
+        <i></i><i></i><i></i>
+        <span class="lang t" style="--i:0"><span class="en">English</span><span class="ko">한국어</span></span>
+      </div>
+      <div class="panes">
+        <div class="side">
+          <div class="item on">
+            <svg viewBox="0 0 16 16"><path d="M2 9.5 4 3.5h8l2 6v3H2zM2 9.5h3.5l1 1.5h3l1-1.5H14"/></svg>
+            <span class="t" style="--i:1"><span class="en">Inbox</span><span class="ko">받은 편지함</span></span>
+          </div>
+          <div class="item">
+            <svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="5.5"/><circle cx="8" cy="8" r="1.5"/></svg>
+            <span class="t" style="--i:2"><span class="en">My issues</span><span class="ko">내 이슈</span></span>
+          </div>
+          <div class="item">
+            <svg viewBox="0 0 16 16"><path d="M8 2 13.5 5v6L8 14 2.5 11V5z"/></svg>
+            <span class="t" style="--i:3"><span class="en">Projects</span><span class="ko">프로젝트</span></span>
+          </div>
+          <div class="item">
+            <svg viewBox="0 0 16 16"><path d="M8 2.5 14 6 8 9.5 2 6zM2.5 9.5 8 12.7l5.5-3.2"/></svg>
+            <span class="t" style="--i:4"><span class="en">Views</span><span class="ko">뷰</span></span>
+          </div>
+        </div>
+        <div class="list">
+          <div class="group"><i class="status doing"></i><span class="t" style="--i:1"><span class="en">In Progress</span><span class="ko">진행 중</span></span></div>
+          <i class="issue" style="--w:78%"></i>
+          <i class="issue" style="--w:54%"></i>
+          <div class="group"><i class="status"></i><span class="t" style="--i:3"><span class="en">Todo</span><span class="ko">할 일</span></span></div>
+          <i class="issue" style="--w:66%"></i>
+          <div class="group"><i class="status done"></i><span class="t" style="--i:4"><span class="en">Done</span><span class="ko">완료</span></span></div>
+          <i class="issue" style="--w:42%"></i>
+        </div>
+      </div>
+    </section>
+
+    <p class="tip"><kbd aria-hidden="true">↻</kbd>이미 열린 Linear 탭은 새로고침하면 적용됩니다.</p>
+
     <footer>
-      <svg class="privacy-icon" viewBox="0 0 16 16" width="13" height="13" aria-hidden="true" focusable="false">
+      <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" focusable="false">
         <path d="M8 1.5 13.5 3.6v4.1c0 3.2-2.2 6-5.5 6.8-3.3-.8-5.5-3.6-5.5-6.8V3.6Z" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/>
         <path d="M5.6 8.1 7.3 9.8l3.2-3.4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
       </svg>
-      <p class="privacy">번역은 이 기기에서만 처리됩니다. 워크스페이스 내용은 업로드하지 않습니다.</p>
+      <p><strong>100% 로컬 번역</strong> 워크스페이스 내용은 어디에도 업로드하지 않습니다.</p>
     </footer>
   </main>
 </body>
