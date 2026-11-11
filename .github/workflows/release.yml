@@ -26,19 +26,23 @@ jobs:
       - name: Build zip
         run: git archive --format=zip -o "$ZIP" HEAD
 
-      - id: auth
-        uses: google-github-actions/auth@c200f3691d83b41bf9bbd8638997a462592937ed # v2
-        with:
-          credentials_json: ${{ secrets.CWS_SERVICE_ACCOUNT_KEY }}
-          token_format: access_token
-          access_token_scopes: https://www.googleapis.com/auth/chromewebstore
-
       - name: Upload to Chrome Web Store
         # shell을 명시해야 pipefail이 켜져 curl 실패가 tee, jq 뒤에 가려지지 않는다
         shell: bash
         env:
-          TOKEN: ${{ steps.auth.outputs.access_token }}
+          KEY: ${{ secrets.CWS_SERVICE_ACCOUNT_KEY }}
         run: |
+          # 키로 서명한 JWT를 액세스 토큰으로 바꾼다. 서비스 계정 가장이 아니라서 IAM 역할이 필요 없다
+          b64() { openssl base64 -A | tr '+/' '-_' | tr -d '='; }
+          claims=$(jq -c --argjson now "$(date +%s)" '{iss: .client_email, scope: "https://www.googleapis.com/auth/chromewebstore",
+            aud: "https://oauth2.googleapis.com/token", iat: $now, exp: ($now + 600)}' <<<"$KEY")
+          unsigned="$(printf '{"alg":"RS256","typ":"JWT"}' | b64).$(printf %s "$claims" | b64)"
+          signature=$(printf %s "$unsigned" | openssl dgst -sha256 -sign <(jq -r .private_key <<<"$KEY") | b64)
+          response=$(curl -sS -d grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer -d "assertion=$unsigned.$signature" \
+            https://oauth2.googleapis.com/token)
+          TOKEN=$(jq -er .access_token <<<"$response") || { echo "$response"; exit 1; }
+          echo "::add-mask::$TOKEN"
+
           item="publishers/$CWS_PUBLISHER_ID/items/$CWS_ITEM_ID"
           api="https://chromewebstore.googleapis.com"
           state=$(curl -sf -X POST -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/zip" -T "$ZIP" \
