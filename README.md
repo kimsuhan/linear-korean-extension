@@ -4,6 +4,9 @@
 
 [Chrome 웹 스토어에서 설치](https://chromewebstore.google.com/detail/ihlhiehmdnabfedbhlkheihpnmeejnef)
 
+![이슈 목록](docs/screenshot-issues.png)
+![환경설정](docs/screenshot-settings.png)
+
 ## 기능
 
 - 사이드바, 이슈 목록, 설정 화면 등 Linear 인터페이스 문구를 한국어로 표시합니다.
