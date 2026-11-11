@@ -5,4 +5,5 @@
 RELEASING.md export-ignore
 README.md export-ignore
 docs export-ignore
+test export-ignore
 CLAUDE.md export-ignore

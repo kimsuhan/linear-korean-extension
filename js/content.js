@@ -21,21 +21,19 @@
     second: '초', minute: '분', min: '분', m: '분', hour: '시간', h: '시간',
     day: '일', d: '일', week: '주', w: '주', month: '개월', mo: '개월', year: '년', y: '년',
   };
-  // [한국어 이름, 단위]
+  // 단수형: [한국어 이름, 단위]
   const COUNT_NOUNS = {
     type: ['유형', '개'], 'api key': ['API 키', '개'], status: ['상태', '개'], template: ['템플릿', '개'],
     'issue template': ['이슈 템플릿', '개'], label: ['라벨', '개'], loop: ['루프', '개'], team: ['팀', '개'],
     pipeline: ['파이프라인', '개'], member: ['멤버', '명'], user: ['사용자', '명'],
   };
-  const RE_COUNT = /^(\d+(?:,\d{3})*) (api keys?|issue templates?|types?|statuses|status|templates?|labels?|loops?|teams?|pipelines?|members?|users?)$/i;
+  const RE_COUNT = new RegExp(`^(\\d+(?:,\\d{3})*) (${Object.keys(COUNT_NOUNS).join('|')})(?:e?s)?$`, 'i');
   const original = new WeakMap();
   let dictionary = new Map();
-  let normalized = new Map();
+  const normalized = new Map();
   let maxSourceLength = 0;
-  let generation = 0;
   let scheduled = null;
   let walker = null;
-  let activeRoot = null;
   const roots = new Set();
 
   function excluded(node) {
@@ -61,11 +59,15 @@
     return null;
   }
 
-  function patternTranslate(key) {
+  // element: 문구가 놓인 요소. 문맥에 따라 번역 여부가 갈리는 패턴에 쓴다
+  function patternTranslate(key, element) {
     let m = key.match(RE_MONTH_YEAR);
     if (m) return `${m[2]}년 ${MONTHS[m[1]]}월`;
     const date = dateText(key);
     if (date) return date;
+    const inButton = !!element.closest('button,[role="button"]');
+    // 이슈/보드 링크 안에서 날짜가 아닌 문구는 사용자 제목일 수 있다
+    if (!inButton && element.closest('a[data-board-item],a[href*="/issue/"]')) return null;
     m = key.match(/^(Last seen|Last used) (.+)$/);
     if (m && dictionary.has(m[1])) {
       const when = dateText(m[2]);
@@ -88,12 +90,12 @@
     if (m) return `사용자 ${m[1]}명 기준 월 ${m[2]}입니다.`;
     m = key.match(RE_COUNT);
     if (m) {
-      const noun = m[2].toLowerCase().replace(/(status)(es)?$|s$/, '$1');
-      const [label, counter] = COUNT_NOUNS[noun];
+      const [label, counter] = COUNT_NOUNS[m[2].toLowerCase()];
       return `${label} ${m[1]}${counter}`;
     }
     m = key.match(/^(\d+(?:,\d{3})*) (issues?|projects?)$/);
-    if (m) {
+    // 본문의 "3 issues"는 문장 일부일 수 있어 버튼류에서만 바꾼다
+    if (m && (inButton || element.closest('[role="menuitem"],[role="option"]'))) {
       const label = dictionary.get(m[2].startsWith('issue') ? 'Issues' : 'Projects');
       if (label) return `${label}: ${m[1]}`;
     }
@@ -105,22 +107,11 @@
     if (dictionary.has(source)) return dictionary.get(source);
     const key = source.trim().replace(/\s+/g, ' ');
     if (!key) return source;
-    if (normalized.has(key)) {
-      const value = normalized.get(key);
-      return source.slice(0, source.length - source.trimStart().length) + value +
-        source.slice(source.trimEnd().length);
-    }
-    const patterned = patternTranslate(key);
-    if (patterned) {
-      // 수량 패턴은 버튼류에서만
-      if (/^\d[\d,]* (issues?|projects?)$/.test(key)) {
-        const element = node.nodeType === Node.ELEMENT_NODE ? node : node.parentElement;
-        if (!element?.closest('button,[role="button"],[role="menuitem"],[role="option"]')) return source;
-      }
-      return source.slice(0, source.length - source.trimStart().length) + patterned +
-        source.slice(source.trimEnd().length);
-    }
-    return source;
+    const value = normalized.get(key) ??
+      patternTranslate(key, node.nodeType === Node.ELEMENT_NODE ? node : node.parentElement);
+    if (value === null) return source;
+    return source.slice(0, source.length - source.trimStart().length) + value +
+      source.slice(source.trimEnd().length);
   }
 
   function update(node, field) {
@@ -139,23 +130,9 @@
     }
   }
 
-  function knownUi(text) {
-    if (dictionary.has(text)) return true;
-    const key = text.trim().replace(/\s+/g, ' ');
-    if (!key) return false;
-    if (normalized.has(key)) return true;
-    return RE_MONTH_YEAR.test(key) || RE_MONTH_DAY.test(key);
-  }
-
   function process(node) {
-    if (node.nodeType === Node.TEXT_NODE) {
-      const parent = node.parentElement;
-      // 이슈/보드 링크의 사용자 제목은 건너뛰고, 같은 링크 안의 UI 칩(Today 등)만 번역
-      if (parent?.closest('a[data-board-item],a[href*="/issue/"]') &&
-          !parent.closest('button,[role="button"]') &&
-          !knownUi(node.nodeValue || '')) return;
-      update(node, '#text');
-    } else if (node.nodeType === Node.ELEMENT_NODE) {
+    if (node.nodeType === Node.TEXT_NODE) update(node, '#text');
+    else if (node.nodeType === Node.ELEMENT_NODE) {
       for (const name of ATTRIBUTES) if (node.hasAttribute(name)) update(node, name);
     }
   }
@@ -173,7 +150,8 @@
     if (!node.isConnected || excluded(node)) return;
     roots.add(node);
     if (roots.size > 500) { roots.clear(); roots.add(document.body); }
-    schedule();
+    // 숨은 탭에서는 브라우저가 rAF를 미뤘다가 보일 때 실행한다
+    if (scheduled === null) scheduled = requestAnimationFrame(flush);
   }
 
   const observer = new MutationObserver((records) => {
@@ -188,29 +166,23 @@
     }
   });
 
-  function schedule() {
-    if (scheduled !== null || document.hidden) return;
-    scheduled = requestAnimationFrame(flush);
-  }
-
   function flush() {
     scheduled = null;
+    // 프레임 사이에 순회 중이던 루트가 떨어졌거나 편집 영역이 됐을 수 있다
+    if (walker && (!walker.root.isConnected || excluded(walker.root))) walker = null;
     const start = performance.now();
     let count = 0;
     while (count < 600 && performance.now() - start < 4) {
       if (!walker) {
         const next = roots.values().next();
         if (next.done) break;
-        activeRoot = next.value;
-        roots.delete(activeRoot);
-        if (!activeRoot.isConnected || excluded(activeRoot)) continue;
-        process(activeRoot);
+        const root = next.value;
+        roots.delete(root);
+        if (!root.isConnected || excluded(root)) continue;
+        process(root);
         count++;
-        if (activeRoot.nodeType === Node.ELEMENT_NODE && activeRoot.matches(SKIP)) {
-          activeRoot = null;
-          continue;
-        }
-        walker = document.createTreeWalker(activeRoot, NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_TEXT, {
+        if (root.nodeType === Node.ELEMENT_NODE && root.matches(SKIP)) continue;
+        walker = document.createTreeWalker(root, NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_TEXT, {
           acceptNode(node) {
             if (node.nodeType === Node.ELEMENT_NODE && node.matches(SKIP)) {
               if (node.matches(EDITABLE)) process(node);
@@ -220,33 +192,26 @@
           },
         });
       }
-      if (!activeRoot.isConnected || excluded(activeRoot)) { walker = null; continue; }
       const node = walker.nextNode();
-      if (!node) { walker = null; activeRoot = null; continue; }
+      if (!node) { walker = null; continue; }
       roots.delete(node);
       process(node);
       count++;
     }
-    if (roots.size || walker) schedule();
+    if (roots.size || walker) scheduled = requestAnimationFrame(flush);
   }
 
-  async function reload() {
-    const request = ++generation;
+  async function start() {
     let result;
     try { result = await chrome.runtime.sendMessage({ type: 'LINEAR_KO_PACK' }); }
     catch { return; }
-    if (request !== generation || !result?.messages || result.error) return;
+    if (!result?.messages || !document.body) return;
     dictionary = new Map(Object.entries(result.messages));
-    normalized = new Map();
-    maxSourceLength = 0;
     for (const [key, value] of dictionary) {
       maxSourceLength = Math.max(maxSourceLength, key.length);
       const clean = key.trim().replace(/\s+/g, ' ');
       if (clean) normalized.set(clean, value.trim());
     }
-    observer.disconnect();
-    roots.clear(); walker = null; activeRoot = null;
-    if (!document.body) return;
     observer.observe(document.body, {
       subtree: true, childList: true, characterData: true,
       attributes: true, attributeFilter: ATTRIBUTES,
@@ -254,15 +219,5 @@
     enqueue(document.body);
   }
 
-  document.addEventListener('visibilitychange', () => {
-    if (!document.hidden && (roots.size || walker)) schedule();
-  });
-  window.addEventListener('pageshow', (event) => { if (event.persisted) void reload(); });
-  window.addEventListener('pagehide', () => {
-    if (scheduled !== null) cancelAnimationFrame(scheduled);
-    scheduled = null;
-    observer.disconnect();
-    roots.clear(); walker = null;
-  });
-  void reload();
+  void start();
 })();

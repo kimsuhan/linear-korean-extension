@@ -11,6 +11,7 @@ Linear.app 화면 문구를 한국어로 바꾸는 MV3 확장. 빌드 과정이 
 - 용어는 기존 번역을 따른다(Issues 이슈, Inbox 받은 편지함, Views 뷰 등). 새 용어는 `ko.json`에서 같은 단어의 기존 번역을 먼저 검색한다.
 - 제품, 연동 이름(GitHub, Slack, Linear Code 등)은 번역하지 않는다.
 - 수정 후 `jq empty locales/ko.json`으로 JSON이 깨지지 않았는지 확인한다.
+- 사전이나 `content.js`의 패턴을 고쳤으면 `node --test`를 돌린다. 패턴과 겹치는 사전 키도 여기서 걸린다.
 
 ## 화면 확인
 
@@ -18,7 +19,7 @@ Linear.app 화면 문구를 한국어로 바꾸는 MV3 확장. 빌드 과정이 
 
   ```js
   (function (chrome) { /* js/content.js 내용 */ })({
-    runtime: { sendMessage: async () => ({ locale: 'ko', messages: /* locales/ko.json 내용 */ }) },
+    runtime: { sendMessage: async () => ({ messages: /* locales/ko.json 내용 */ }) },
   });
   ```
 

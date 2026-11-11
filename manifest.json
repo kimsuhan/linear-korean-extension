@@ -23,7 +23,7 @@
   },
   "content_scripts": [
     {
-      "matches": ["*://*.linear.app/*"],
+      "matches": ["https://*.linear.app/*"],
       "js": ["js/content.js"],
       "run_at": "document_end",
       "all_frames": true

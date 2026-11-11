@@ -11,9 +11,8 @@ async function loadPack() {
 }
 
 chrome.runtime.onMessage.addListener((message, sender, reply) => {
-  if (sender.id !== chrome.runtime.id || message?.type !== 'LINEAR_KO_PACK') return;
-  loadPack()
-    .then((messages) => reply({ locale: 'ko', messages }))
-    .catch(() => reply({ locale: 'ko', messages: {}, error: true }));
+  if (message?.type !== 'LINEAR_KO_PACK') return;
+  // 실패하면 messages 없이 답해 콘텐츠 스크립트가 아무것도 하지 않게 한다
+  loadPack().then((messages) => reply({ messages }), () => reply({}));
   return true;
 });
