@@ -1,6 +1,6 @@
 # 릴리즈
 
-`v*` 태그를 푸시하면 `.github/workflows/release.yml`이 zip을 만들고 GitHub Release에 첨부한 뒤, Chrome Web Store에 업로드하고 검토를 제출한다. 검토를 통과하면 자동으로 게시된다.
+`v*` 태그를 푸시하면 `.github/workflows/release.yml`이 zip을 만들어 Chrome Web Store에 업로드하고 검토를 제출한 뒤, GitHub Release에 첨부한다. 검토를 통과하면 자동으로 게시된다.
 
 ## 새 버전 내기
 

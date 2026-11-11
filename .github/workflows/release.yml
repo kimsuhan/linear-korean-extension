@@ -15,7 +15,7 @@ jobs:
   release:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
 
       - name: Check manifest version matches tag
         run: |
@@ -26,19 +26,16 @@ jobs:
       - name: Build zip
         run: git archive --format=zip -o "$ZIP" HEAD
 
-      - name: Create GitHub release
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: gh release create "$GITHUB_REF_NAME" "$ZIP" --generate-notes
-
       - id: auth
-        uses: google-github-actions/auth@v2
+        uses: google-github-actions/auth@c200f3691d83b41bf9bbd8638997a462592937ed # v2
         with:
           credentials_json: ${{ secrets.CWS_SERVICE_ACCOUNT_KEY }}
           token_format: access_token
           access_token_scopes: https://www.googleapis.com/auth/chromewebstore
 
       - name: Upload to Chrome Web Store
+        # shell을 명시해야 pipefail이 켜져 curl 실패가 tee, jq 뒤에 가려지지 않는다
+        shell: bash
         env:
           TOKEN: ${{ steps.auth.outputs.access_token }}
         run: |
@@ -55,3 +52,9 @@ jobs:
           [ "$state" = SUCCEEDED ] || exit 1
           curl -sf -X POST -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
             -d '{}' "$api/v2/$item:publish" | tee /dev/stderr
+
+      # 실패하기 쉬운 스토어 업로드가 끝난 뒤에 만들어야 재실행이 릴리스 중복으로 막히지 않는다
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" "$ZIP" --generate-notes
