@@ -4,7 +4,7 @@
   "short_name": "리니어 한글화",
   "description": "__MSG_extensionDescription__",
   "default_locale": "ko",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "icons": {
     "16": "img/favicon-16x16.png",
     "48": "img/favicon-48x48.png",
