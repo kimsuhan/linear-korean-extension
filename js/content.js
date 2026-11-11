@@ -16,6 +16,9 @@
   const RE_MONTH_YEAR = new RegExp(`^(${MONTH_NAMES}) (\\d{4})$`);
   const RE_MONTH_DAY = new RegExp(`^(${MONTH_NAMES}) (\\d{1,2})$`);
   const RE_FULL_DATE = new RegExp(`^(${MONTH_NAMES}) (\\d{1,2}), (\\d{4})$`);
+  const WEEKDAYS = { Mon: '월', Tue: '화', Wed: '수', Thu: '목', Fri: '금', Sat: '토', Sun: '일' };
+  // "Thu, 12 Nov"(일 월) 또는 "Thu, Nov 12"(월 일)
+  const RE_WEEKDAY_DATE = new RegExp(`^(${Object.keys(WEEKDAYS).join('|')}), (?:(\\d{1,2}) (${MONTH_NAMES})|(${MONTH_NAMES}) (\\d{1,2}))$`);
   const RE_CYCLE = /^Current cycle is (.+?) – (.+?), next cycle begins (.+)$/;
   const TIME_UNITS = {
     second: '초', minute: '분', min: '분', m: '분', hour: '시간', h: '시간',
@@ -50,6 +53,8 @@
     if (m) return `${m[3]}년 ${MONTHS[m[1]]}월 ${Number(m[2])}일`;
     m = key.match(RE_MONTH_DAY);
     if (m) return `${MONTHS[m[1]]}월 ${Number(m[2])}일`;
+    m = key.match(RE_WEEKDAY_DATE);
+    if (m) return `${MONTHS[m[3] ?? m[4]]}월 ${Number(m[2] ?? m[5])}일 (${WEEKDAYS[m[1]]})`;
     m = key.match(/^(about |almost |over )?(\d+|an?) (second|minute|hour|day|week|month|year)s? ago$/);
     if (m) return `${m[1] ? '약 ' : ''}${/^an?$/.test(m[2]) ? 1 : m[2]}${TIME_UNITS[m[3]]} 전`;
     m = key.match(/^(\d+) ?(min|mo|m|h|d|w|y) ago$/);
@@ -78,6 +83,9 @@
       const [from, to, next] = [dateText(m[1]), dateText(m[2]), dateText(m[3])];
       if (from && to && next) return `현재 사이클: ${from} – ${to}, 다음 사이클 시작: ${next}`;
     }
+    // 날짜 입력 예시는 영어로만 파싱되므로 예시는 그대로 둔다
+    m = key.match(/^Try: (.+)$/);
+    if (m) return `예: ${m[1]}`;
     m = key.match(/^(Every )?(\d+) (day|week|month)s?$/);
     if (m) return `${m[2]}${TIME_UNITS[m[3]]}${m[1] ? '마다' : ''}`;
     m = key.match(/^(\d+) levels?$/);

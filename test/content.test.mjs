@@ -80,6 +80,8 @@ test('날짜와 상대 시간', () => {
   assert.equal(page.text('November 2026'), '2026년 11월');
   assert.equal(page.text('Nov 3'), '11월 3일');
   assert.equal(page.text('Nov 03, 2026'), '2026년 11월 3일');
+  assert.equal(page.text('Thu, 12 Nov'), '11월 12일 (목)');
+  assert.equal(page.text('Fri, Nov 20'), '11월 20일 (금)');
   assert.equal(page.text('about an hour ago'), '약 1시간 전');
   assert.equal(page.text('1 week ago'), '1주 전');
   assert.equal(page.text('4 weeks ago'), '4주 전');
@@ -129,4 +131,5 @@ test('패턴이 처리하는 문구는 사전에 두지 않는다', async () => 
 test('속성', () => {
   assert.equal(page.title('Inbox'), '받은 편지함');
   assert.equal(page.title('3 days ago'), '3일 전');
+  assert.equal(page.title('Try: 24h, 7 days, Feb 9'), '예: 24h, 7 days, Feb 9');
 });
